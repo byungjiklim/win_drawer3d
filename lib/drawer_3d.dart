@@ -1,3 +1,4 @@
+import 'dart:ffi';
 import 'dart:math';
 import 'dart:ui';
 
@@ -7,7 +8,7 @@ import 'package:flutter/widgets.dart';
 import 'package:image_sequence_animator/image_sequence_animator.dart';
 
 class Drawer3D extends StatefulWidget {
-  final Widget child;
+  final Widget? child;
 
   Drawer3D({this.child});
 
@@ -19,27 +20,30 @@ class _Drawer3DState extends State<Drawer3D>
     with SingleTickerProviderStateMixin {
   var _maxSlide = 0.75;
   var _extraHeight = 0.1;
-  double _startingPos;
+  double _startingPos = 0;
   var _drawerVisible = false;
-  AnimationController _animationController;
+  AnimationController? _animationController;
   Size _screen = Size(0, 0);
-  CurvedAnimation _animator;
-  CurvedAnimation _objAnimator;
+  CurvedAnimation? _animator;
+  CurvedAnimation? _objAnimator;
 
+  //AnimationController get animationController => (_animationController! == null) ?
   @override
   void initState() {
     super.initState();
     _animationController = AnimationController(
       vsync: this,
-      duration: Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 800),
     );
+
     _animator = CurvedAnimation(
-      parent: _animationController,
+      parent: _animationController!,
       curve: Curves.easeInOutQuad,
       reverseCurve: Curves.easeInQuad,
     );
+
     _objAnimator = CurvedAnimation(
-      parent: _animationController,
+      parent: _animationController!,
       curve: Curves.easeInOut,
       reverseCurve: Curves.easeIn,
     );
@@ -85,43 +89,43 @@ class _Drawer3DState extends State<Drawer3D>
     if (globalDelta > 0) {
       final pos = globalDelta / _screen.width;
       if (_drawerVisible && pos <= 1.0) return;
-      _animationController.value = pos;
+      _animationController!.value = pos;
     } else {
       final pos = 1 - (globalDelta.abs() / _screen.width);
       if (!_drawerVisible && pos >= 0.0) return;
-      _animationController.value = pos;
+      _animationController!.value = pos;
     }
   }
 
   void _onDragEnd(DragEndDetails details) {
     if (details.velocity.pixelsPerSecond.dx.abs() > 500) {
       if (details.velocity.pixelsPerSecond.dx > 0) {
-        _animationController.forward(from: _animationController.value);
+        _animationController!.forward(from: _animationController!.value);
         _drawerVisible = true;
       } else {
-        _animationController.reverse(from: _animationController.value);
+        _animationController!.reverse(from: _animationController!.value);
         _drawerVisible = false;
       }
       return;
     }
-    if (_animationController.value > 0.5) {
+    if (_animationController!.value > 0.5) {
       {
-        _animationController.forward(from: _animationController.value);
+        _animationController!.forward(from: _animationController!.value);
         _drawerVisible = true;
       }
     } else {
       {
-        _animationController.reverse(from: _animationController.value);
+        _animationController!.reverse(from: _animationController!.value);
         _drawerVisible = false;
       }
     }
   }
 
   void _toggleDrawer() {
-    if (_animationController.value < 0.5)
-      _animationController.forward();
+    if (_animationController!.value < 0.5)
+      _animationController!.forward();
     else
-      _animationController.reverse();
+      _animationController!.reverse();
   }
 
   _buildMenuItem(String s, {bool active = false}) {
@@ -161,13 +165,13 @@ class _Drawer3DState extends State<Drawer3D>
         top: -_extraHeight,
         bottom: -_extraHeight,
         child: AnimatedBuilder(
-          animation: _animator,
+          animation: _animator!,
           builder: (context, widget) => Transform.translate(
-            offset: Offset(_maxSlide * _animator.value, 0),
+            offset: Offset(_maxSlide * _animator!.value, 0),
             child: Transform(
               transform: Matrix4.identity()
                 ..setEntry(3, 2, 0.001)
-                ..rotateY((pi / 2 + 0.1) * -_animator.value),
+                ..rotateY((pi / 2 + 0.1) * -_animator!.value),
               alignment: Alignment.centerLeft,
               child: widget,
             ),
@@ -242,10 +246,10 @@ class _Drawer3DState extends State<Drawer3D>
                   ),
                 ),
                 AnimatedBuilder(
-                  animation: _animator,
+                  animation: _animator!,
                   builder: (_, __) => Container(
                     color: Colors.black.withAlpha(
-                      (150 * _animator.value).floor(),
+                      (150 * _animator!.value).floor(),
                     ),
                   ),
                 ),
@@ -261,14 +265,14 @@ class _Drawer3DState extends State<Drawer3D>
         left: 0,
         right: _screen.width - _maxSlide,
         child: AnimatedBuilder(
-          animation: _animator,
+          animation: _animator!,
           builder: (context, widget) {
             return Transform.translate(
-              offset: Offset(_maxSlide * (_animator.value - 1), 0),
+              offset: Offset(_maxSlide * (_animator!.value - 1), 0),
               child: Transform(
                 transform: Matrix4.identity()
                   ..setEntry(3, 2, 0.001)
-                  ..rotateY(pi * (1 - _animator.value) / 2),
+                  ..rotateY(pi * (1 - _animator!.value) / 2),
                 alignment: Alignment.centerRight,
                 child: widget,
               ),
@@ -357,11 +361,11 @@ class _Drawer3DState extends State<Drawer3D>
                   ),
                 ),
                 AnimatedBuilder(
-                  animation: _animator,
+                  animation: _animator!,
                   builder: (_, __) => Container(
                     width: _maxSlide,
                     color: Colors.black.withAlpha(
-                      (150 * (1 - _animator.value)).floor(),
+                      (150 * (1 - _animator!.value)).floor(),
                     ),
                   ),
                 ),
@@ -377,7 +381,7 @@ class _Drawer3DState extends State<Drawer3D>
         left: _maxSlide - _screen.width * 0.5,
         right: _screen.width * 0.85 - _maxSlide,
         child: AnimatedBuilder(
-          animation: _objAnimator,
+          animation: _objAnimator!,
           builder: (_, __) => ImageSequenceAnimator(
             "assets/guitarSequence", //folderName
             "", //fileName
@@ -389,17 +393,17 @@ class _Drawer3DState extends State<Drawer3D>
             isLooping: false,
             isBoomerang: true,
             isAutoPlay: false,
-            frame: (_objAnimator.value * 120).ceil(),
+            frame: (_objAnimator!.value * 120).ceil(),
           ),
         ),
       );
 
   _buildHeader() => SafeArea(
         child: AnimatedBuilder(
-            animation: _animator,
+            animation: _animator!,
             builder: (_, __) {
               return Transform.translate(
-                offset: Offset((_screen.width - 60) * _animator.value, 0),
+                offset: Offset((_screen.width - 60) * _animator!.value, 0),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
@@ -412,7 +416,7 @@ class _Drawer3DState extends State<Drawer3D>
                       ),
                     ),
                     Opacity(
-                      opacity: 1 - _animator.value,
+                      opacity: 1 - _animator!.value,
                       child: Text(
                         "PRODUCT DETAIL",
                         style: TextStyle(fontWeight: FontWeight.w900),
@@ -431,15 +435,15 @@ class _Drawer3DState extends State<Drawer3D>
         left: 0,
         right: 0,
         child: AnimatedBuilder(
-          animation: _animator,
+          animation: _animator!,
           builder: (_, widget) => Opacity(
-            opacity: 1 - _animator.value,
+            opacity: 1 - _animator!.value,
             child: Transform.translate(
-              offset: Offset((_maxSlide + 50) * _animator.value, 0),
+              offset: Offset((_maxSlide + 50) * _animator!.value, 0),
               child: Transform(
                 transform: Matrix4.identity()
                   ..setEntry(3, 2, 0.001)
-                  ..rotateY((pi / 2 + 0.1) * -_animator.value),
+                  ..rotateY((pi / 2 + 0.1) * -_animator!.value),
                 alignment: Alignment.centerLeft,
                 child: widget,
               ),
